@@ -104,12 +104,13 @@
         </div>
         <canvas id="gameCanvas" width="800" height="400"></canvas>
         <div class="controls">
-            <p>Player: W/S keys | Computer: Arrow Up/Down keys</p>
+            <p id="controlText">Player: W/S keys | Computer: Arrow Up/Down keys</p>
             <p>Press SPACE to start/pause</p>
         </div>
         <div id="gameStatus"></div>
         <button id="startBtn" onclick="startGame()">Start Game</button>
         <button id="resetBtn" onclick="resetGame()">Reset</button>
+        <button id="modeBtn" onclick="toggleMode()">Switch to 2v1 Mode</button>
     </div>
 
     <script>
@@ -121,6 +122,8 @@
         const gameStatusEl = document.getElementById('gameStatus');
         const startBtn = document.getElementById('startBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const modeBtn = document.getElementById('modeBtn');
+        const controlText = document.getElementById('controlText');
 
         // Game state
         let gameRunning = false;
@@ -128,6 +131,7 @@
         let playerScore = 0;
         let computerScore = 0;
         let gameSpeed = 1;
+        let dualPlatformMode = false;
 
         // Ball properties
         const ball = {
@@ -146,7 +150,7 @@
 
         const playerPaddle = {
             x: 20,
-            y: canvas.height / 2 - paddleHeight / 2,
+            y: canvas.height / 4 - paddleHeight / 2, // Upper paddle
             width: paddleWidth,
             height: paddleHeight,
             dy: 0,
@@ -160,6 +164,15 @@
             height: paddleHeight,
             dy: 0,
             color: '#ff6b6b'
+        };
+
+        const player2Paddle = {
+            x: 20,
+            y: 3 * canvas.height / 4 - paddleHeight / 2, // Lower paddle
+            width: paddleWidth,
+            height: paddleHeight,
+            dy: 0,
+            color: '#45b7d1'
         };
 
         // Keyboard state
