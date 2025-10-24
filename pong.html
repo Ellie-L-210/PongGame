@@ -251,8 +251,9 @@
             ball.y = canvas.height / 2;
             ball.dx = 4 * gameSpeed;
             ball.dy = 4 * gameSpeed;
-            playerPaddle.y = canvas.height / 2 - paddleHeight / 2;
+            playerPaddle.y = canvas.height / 4 - paddleHeight / 2;
             computerPaddle.y = canvas.height / 2 - paddleHeight / 2;
+            player2Paddle.y = 3 * canvas.height / 4 - paddleHeight / 2;
             
             updateScore();
             startBtn.textContent = 'Start Game';
@@ -458,7 +459,12 @@
             // Check for game over
             if (playerScore >= 5 || computerScore >= 5) {
                 gameRunning = false;
-                const winner = playerScore >= 5 ? 'Player' : 'Computer';
+                let winner;
+                if (dualPlatformMode) {
+                    winner = playerScore >= 5 ? 'Player (Dual Platform)' : 'Computer';
+                } else {
+                    winner = playerScore >= 5 ? 'Player' : 'Computer';
+                }
                 gameStatusEl.innerHTML = `<div class="game-over">Game Over! ${winner} Wins!</div>`;
                 startBtn.textContent = 'Start Game';
             } else {
