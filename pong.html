@@ -231,6 +231,17 @@
             }
         }
 
+        function toggleMode() {
+            dualPlatformMode = !dualPlatformMode;
+            modeBtn.textContent = dualPlatformMode ? 'Switch to Single Platform' : 'Switch to 2v1 Mode';
+            controlText.textContent = dualPlatformMode ? 
+                'Upper Paddle: W/S keys | Lower Paddle: Arrow Up/Down keys | Computer: AI-controlled' : 
+                'Player Platform: Arrow Up/Down keys | Computer: AI-controlled';
+            
+            // Reset game when switching modes
+            resetGame();
+        }
+
         function resetGame() {
             gameRunning = false;
             gamePaused = false;
@@ -262,15 +273,33 @@
         }
 
         function updatePaddles() {
-            // Player paddle movement
-            if (keys.w && playerPaddle.y > 0) {
-                playerPaddle.y -= paddleSpeed;
-            }
-            if (keys.s && playerPaddle.y < canvas.height - paddleHeight) {
-                playerPaddle.y += paddleSpeed;
+            if (dualPlatformMode) {
+                // Upper paddle controlled by W/S keys
+                if (keys.w && playerPaddle.y > 0) {
+                    playerPaddle.y -= paddleSpeed;
+                }
+                if (keys.s && playerPaddle.y < canvas.height - paddleHeight) {
+                    playerPaddle.y += paddleSpeed;
+                }
+
+                // Lower paddle controlled by arrow keys
+                if (keys.ArrowUp && player2Paddle.y > 0) {
+                    player2Paddle.y -= paddleSpeed;
+                }
+                if (keys.ArrowDown && player2Paddle.y < canvas.height - paddleHeight) {
+                    player2Paddle.y += paddleSpeed;
+                }
+            } else {
+                // Single paddle mode - Player paddle movement with arrow keys
+                if (keys.ArrowUp && playerPaddle.y > 0) {
+                    playerPaddle.y -= paddleSpeed;
+                }
+                if (keys.ArrowDown && playerPaddle.y < canvas.height - paddleHeight) {
+                    playerPaddle.y += paddleSpeed;
+                }
             }
 
-            // Computer paddle movement (AI)
+            // Computer paddle movement (AI) - always active
             const computerPaddleCenter = computerPaddle.y + paddleHeight / 2;
             const ballY = ball.y;
             
@@ -291,17 +320,42 @@
             }
 
             // Ball collision with paddles
-            if (ball.x - ball.radius <= playerPaddle.x + playerPaddle.width &&
-                ball.x + ball.radius >= playerPaddle.x &&
-                ball.y >= playerPaddle.y &&
-                ball.y <= playerPaddle.y + playerPaddle.height) {
+            if (dualPlatformMode) {
+                // Collision with upper paddle (playerPaddle)
+                if (ball.x - ball.radius <= playerPaddle.x + playerPaddle.width &&
+                    ball.x + ball.radius >= playerPaddle.x &&
+                    ball.y >= playerPaddle.y &&
+                    ball.y <= playerPaddle.y + playerPaddle.height) {
+                    
+                    const hitPos = (ball.y - (playerPaddle.y + paddleHeight / 2)) / (paddleHeight / 2);
+                    ball.dx = Math.abs(ball.dx);
+                    ball.dy = hitPos * 5 * gameSpeed;
+                }
                 
-                // Calculate hit position relative to paddle center
-                const hitPos = (ball.y - (playerPaddle.y + paddleHeight / 2)) / (paddleHeight / 2);
-                ball.dx = Math.abs(ball.dx);
-                ball.dy = hitPos * 5 * gameSpeed;
+                // Collision with lower paddle (player2Paddle)
+                if (ball.x - ball.radius <= player2Paddle.x + player2Paddle.width &&
+                    ball.x + ball.radius >= player2Paddle.x &&
+                    ball.y >= player2Paddle.y &&
+                    ball.y <= player2Paddle.y + player2Paddle.height) {
+                    
+                    const hitPos = (ball.y - (player2Paddle.y + paddleHeight / 2)) / (paddleHeight / 2);
+                    ball.dx = Math.abs(ball.dx);
+                    ball.dy = hitPos * 5 * gameSpeed;
+                }
+            } else {
+                // Single paddle mode - collision with player paddle
+                if (ball.x - ball.radius <= playerPaddle.x + playerPaddle.width &&
+                    ball.x + ball.radius >= playerPaddle.x &&
+                    ball.y >= playerPaddle.y &&
+                    ball.y <= playerPaddle.y + playerPaddle.height) {
+                    
+                    const hitPos = (ball.y - (playerPaddle.y + paddleHeight / 2)) / (paddleHeight / 2);
+                    ball.dx = Math.abs(ball.dx);
+                    ball.dy = hitPos * 5 * gameSpeed;
+                }
             }
 
+            // Collision with computer paddle (always active)
             if (ball.x + ball.radius >= computerPaddle.x &&
                 ball.x - ball.radius <= computerPaddle.x + computerPaddle.width &&
                 ball.y >= computerPaddle.y &&
@@ -346,18 +400,46 @@
             ctx.fill();
 
             // Draw paddles
-            ctx.fillStyle = playerPaddle.color;
-            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            if (dualPlatformMode) {
+                // Draw upper paddle (playerPaddle)
+                ctx.fillStyle = playerPaddle.color;
+                ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+                
+                // Draw lower paddle (player2Paddle)
+                ctx.fillStyle = player2Paddle.color;
+                ctx.fillRect(player2Paddle.x, player2Paddle.y, player2Paddle.width, player2Paddle.height);
+            } else {
+                // Draw single player paddle
+                ctx.fillStyle = playerPaddle.color;
+                ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            }
 
+            // Always draw computer paddle
             ctx.fillStyle = computerPaddle.color;
             ctx.fillRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height);
 
             // Add glow effect to paddles
-            ctx.shadowColor = playerPaddle.color;
-            ctx.shadowBlur = 20;
-            ctx.fillStyle = playerPaddle.color;
-            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            if (dualPlatformMode) {
+                // Glow effect for upper paddle
+                ctx.shadowColor = playerPaddle.color;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = playerPaddle.color;
+                ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+                
+                // Glow effect for lower paddle
+                ctx.shadowColor = player2Paddle.color;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = player2Paddle.color;
+                ctx.fillRect(player2Paddle.x, player2Paddle.y, player2Paddle.width, player2Paddle.height);
+            } else {
+                // Glow effect for single player paddle
+                ctx.shadowColor = playerPaddle.color;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = playerPaddle.color;
+                ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            }
 
+            // Glow effect for computer paddle
             ctx.shadowColor = computerPaddle.color;
             ctx.shadowBlur = 20;
             ctx.fillStyle = computerPaddle.color;
